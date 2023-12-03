@@ -49,7 +49,7 @@ func part_two(games:PackedStringArray):
   var values := {"red": 0, "green": 0, "blue": 0}
   var re_array := []
   for color in values:
-    re_array.append(r"(?<%s>\d+) %s" % [color, color])
+    re_array.append(r"(?<{c}>\d+) {c}".format({"c": color}))
   regex.compile(r"|".join(re_array))
   
   for game in games:
