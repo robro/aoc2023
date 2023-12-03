@@ -39,11 +39,12 @@ func part_two(numbers:Array[EnginePart], symbols:Array[EnginePart]):
     if sym._value != "*":
       continue
     var adjacent_nums := get_adjacent_nums(sym, numbers)
-    if adjacent_nums.size() == 2:
-      var gear_ratio := 1
-      for num in adjacent_nums:
-        gear_ratio *= int(num._value)
-      sum += gear_ratio
+    if adjacent_nums.size() != 2:
+      continue
+    var gear_ratio := 1
+    for num in adjacent_nums:
+      gear_ratio *= int(num._value)
+    sum += gear_ratio
       
   print("Part Two: ", sum)
   
