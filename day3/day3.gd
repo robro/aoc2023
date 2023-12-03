@@ -35,17 +35,17 @@ class EngineParts:
   var symbols:Array[EnginePart] = []
   
   func _init(lines:Array):
-    var regex := RegEx.new()
     var num_re := r"\d+"
     var sym_re := r"[^\d\.]"
     var y := 0
     for line in lines:
-      numbers.append_array(get_parts_in_line(line, regex, num_re, y))
-      symbols.append_array(get_parts_in_line(line, regex, sym_re, y))
+      numbers.append_array(get_parts_in_line(line, num_re, y))
+      symbols.append_array(get_parts_in_line(line, sym_re, y))
       y += 1
       
-  func get_parts_in_line(line:String, regex:RegEx, re_str:String, y:int) -> Array[EnginePart]:
+  func get_parts_in_line(line:String, re_str:String, y:int) -> Array[EnginePart]:
     var parts:Array[EnginePart] = []
+    var regex := RegEx.new()
     regex.compile(re_str)
     var matches = regex.search_all(line)
     for m in matches:
