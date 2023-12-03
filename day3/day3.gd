@@ -1,35 +1,42 @@
 extends Node2D
 
+class EnginePart extends Node2D:
+  var _type := ""
+  var _value := ""
+  var _location := Vector2()
+  var _size := 0
+  
+  func _init(type:String, value:String, location:Vector2, size:int):
+    _type = type
+    _value = value
+    _location = location
+    _size = size
+
 #@onready var input_lines := FileAccess.open("res://day3/example_1.txt", FileAccess.READ).get_as_text().split("\n")
 @onready var input_lines := FileAccess.open("res://day3/input.txt", FileAccess.READ).get_as_text().split("\n")
 
 func _ready():
   print("Day 3")
-  part_one(Array(input_lines).filter(func(x): return x != ""))
-  part_two(Array(input_lines).filter(func(x): return x != ""))
+  var parts := get_engine_parts(input_lines)
+  var symbols := parts.filter(func(x): return x._type == "symbol")
+  var numbers := parts.filter(func(x): return x._type == "number")
+  part_one(numbers, symbols)
+  part_two(numbers, symbols)
 
-func part_one(lines:Array):
+func part_one(numbers:Array[EnginePart], symbols:Array[EnginePart]):
   var sum := 0
-  var nums_and_syms := get_nums_and_syms(lines)
-  var numbers = nums_and_syms[0]
-  var symbols = nums_and_syms[1]
-
+  
   for num in numbers:
-    var num_value := int(num[0])
     if is_adjacent(num, symbols):
-      sum += num_value
+      sum += int(num._value)
     
   print("Part One: ", sum)
   
-func part_two(lines:Array):
+func part_two(numbers:Array[EnginePart], symbols:Array[EnginePart]):
   var sum := 0
-  var nums_and_syms := get_nums_and_syms(lines)
-  var numbers = nums_and_syms[0]
-  var symbols = nums_and_syms[1]
   
   for sym in symbols:
-    var sym_type:String = sym[0]
-    if sym_type != "*":
+    if sym._value != "*":
       continue
     var adjacent_nums := get_adjacent_nums(sym, numbers)
     if adjacent_nums.size() == 2:
@@ -40,55 +47,51 @@ func part_two(lines:Array):
       
   print("Part Two: ", sum)
   
-func get_nums_and_syms(lines:Array) -> Array:
+func get_engine_parts(lines:Array) -> Array[EnginePart]:
   var regex := RegEx.new()
   var symbol_re := r"[^\d\.]"
   var number_re := r"\d+"
-  var symbols := []
-  var numbers := []
+  var parts:Array[EnginePart] = []
   var y := 0
   
   for line in lines:
     regex.compile(symbol_re)
     var match_symbols := regex.search_all(line)
     for m in match_symbols:
-      symbols.append([m.get_string(), Vector2(m.get_start(), y)])
+      parts.append(EnginePart.new(
+        "symbol", 
+        m.get_string(), 
+        Vector2(m.get_start(), y), 
+        1
+      ))
     regex.compile(number_re)
     var match_numbers := regex.search_all(line)
     for m in match_numbers:
-      numbers.append([m.get_string(), Vector2(m.get_start(), y), m.get_end()-m.get_start()])
+      parts.append(EnginePart.new(
+        "number", 
+        m.get_string(), 
+        Vector2(m.get_start(), y), 
+        m.get_end()-m.get_start()
+      ))
     y += 1
     
-  return [numbers, symbols]
+  return parts
 
-func is_adjacent(num:Array, symbols:Array) -> bool:
-  var num_coord:Vector2 = num[1]
-  var num_len:int = num[2]
-  
+func is_adjacent(num:EnginePart, symbols:Array[EnginePart]) -> bool:  
   for sym in symbols:
-    var sym_coord:Vector2 = sym[1]
-    for i in range(num_len):
-      var distance = sym_coord.distance_to(num_coord + Vector2(i, 0))
-      if distance < 2:
+    for i in range(num._size):
+      if sym._location.distance_to(num._location + Vector2(i, 0)) < 2:
         return true
         
   return false
   
-func get_adjacent_nums(sym:Array, numbers:Array) -> Array:
+func get_adjacent_nums(sym:EnginePart, numbers:Array[EnginePart]) -> Array:
   var adjacent_nums := []
-  var sym_type:String = sym[0]
-  var sym_coord:Vector2 = sym[1]
-  var adjacent_count := 0
   
   for num in numbers:
-    var num_value := int(num[0])
-    var num_coord:Vector2 = num[1]
-    var num_len:int = num[2]
-    
-    for i in range(num_len):
-      var distance = sym_coord.distance_to(num_coord + Vector2(i, 0))
-      if distance < 2:
-        adjacent_nums.append(num_value)
+    for i in range(num._size):
+      if sym._location.distance_to(num._location + Vector2(i, 0)) < 2:
+        adjacent_nums.append(int(num._value))
         break
   
   return adjacent_nums
