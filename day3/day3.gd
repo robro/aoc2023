@@ -34,14 +34,16 @@ func part_one(numbers:Array[EnginePart], symbols:Array[EnginePart]):
   
 func part_two(numbers:Array[EnginePart], symbols:Array[EnginePart]):
   var sum := 0
+  var adjacent_nums:Array[EnginePart]
+  var gear_ratio:int
   
   for sym in symbols:
     if sym._value != "*":
       continue
-    var adjacent_nums := get_adjacent_nums(sym, numbers)
+    adjacent_nums = get_adjacent_nums(sym, numbers)
     if adjacent_nums.size() != 2:
       continue
-    var gear_ratio := 1
+    gear_ratio = 1
     for num in adjacent_nums:
       gear_ratio *= int(num._value)
     sum += gear_ratio
@@ -50,31 +52,29 @@ func part_two(numbers:Array[EnginePart], symbols:Array[EnginePart]):
   
 func get_engine_parts(lines:Array) -> Array[EnginePart]:
   var regex := RegEx.new()
-  var symbol_re := r"[^\d\.]"
-  var number_re := r"\d+"
+  var num_re := r"\d+"
+  var sym_re := r"[^\d\.]"
   var parts:Array[EnginePart] = []
   var y := 0
   
   for line in lines:
-    regex.compile(symbol_re)
-    var match_symbols := regex.search_all(line)
-    for m in match_symbols:
-      parts.append(EnginePart.new(
-        "symbol", 
-        m.get_string(), 
-        Vector2(m.get_start(), y), 
-        1
-      ))
-    regex.compile(number_re)
-    var match_numbers := regex.search_all(line)
-    for m in match_numbers:
-      parts.append(EnginePart.new(
-        "number", 
-        m.get_string(), 
-        Vector2(m.get_start(), y), 
-        m.get_end()-m.get_start()
-      ))
+    parts.append_array(get_parts_in_line(line, regex, num_re, "number", y))
+    parts.append_array(get_parts_in_line(line, regex, sym_re, "symbol", y))
     y += 1
+    
+  return parts
+  
+func get_parts_in_line(line:String, regex:RegEx, re_str:String, type:String, y:int) -> Array[EnginePart]:
+  var parts:Array[EnginePart] = []
+  regex.compile(re_str)
+  var matches = regex.search_all(line)
+  for m in matches:
+    parts.append(EnginePart.new(
+      type, 
+      m.get_string(), 
+      Vector2(m.get_start(), y), 
+      m.get_end()-m.get_start()
+    ))
     
   return parts
 
