@@ -11,20 +11,20 @@ func _ready():
 func part_one(lines:PackedStringArray):
   var id_sum := 0
   var limits := {"red": 12, "green": 13, "blue": 14}
-  var regex := RegEx.new()
-  regex.compile(r"Game (?<game>\d+)")
+  var line_num := 1
   
   for line in Array(lines).filter(func(x): return x != ""):
     var max_values := get_max_values(line, limits.keys())
     var is_possible := true
-    var game_id := int(regex.search(line).get_string("game"))
 
     for color in limits:
       if max_values[color] > limits[color]:
         is_possible = false
         break
     if is_possible:
-      id_sum += game_id
+      id_sum += line_num
+    
+    line_num += 1
       
   print("Part One: ", id_sum)
   
