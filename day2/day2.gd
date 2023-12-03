@@ -18,7 +18,7 @@ func part_one(games:PackedStringArray):
   }
   var re_array := [r"Game (?<game>\d+)"]
   for color in limits:
-    re_array.append(r"(?<%s>\d+) %s" % [color, color])
+    re_array.append(r"(?<{c}>\d+) {c}".format({"c": color}))
   regex.compile(r"|".join(re_array))
   
   for game in games:
