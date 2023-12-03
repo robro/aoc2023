@@ -31,7 +31,7 @@ func part_one(games:PackedStringArray):
     
     for m in matches:
       var id_str := m.get_string("game")
-      if id_str:
+      if !id_str.is_empty():
         game_id = int(id_str)
       for limit in limits:
         var value := m.get_string(limit)
