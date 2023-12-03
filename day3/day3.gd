@@ -4,19 +4,19 @@ extends Node2D
 @onready var input_lines := FileAccess.open("res://day3/input.txt", FileAccess.READ).get_as_text().split("\n")
 
 class EnginePart:
-  var _value := ""
-  var _location := Vector2()
-  var _size := 0
+  var value := ""
+  var location := Vector2()
+  var size := 0
   
   func _init(value:String, location:Vector2, size:int):
-    _value = value
-    _location = location
-    _size = size
+    self.value = value
+    self.location = location
+    self.size = size
     
   func is_adjacent(part:EnginePart) -> bool:  
-    for i in range(_size):
-      for j in range(part._size):
-        if (_location + Vector2(i, 0)).distance_to(part._location + Vector2(j, 0)) < 2:
+    for i in range(self.size):
+      for j in range(part.size):
+        if (self.location + Vector2(i, 0)).distance_to(part.location + Vector2(j, 0)) < 2:
           return true
   
     return false
@@ -69,7 +69,7 @@ func part_one(parts:EngineParts):
   for num in parts.numbers:
     for sym in parts.symbols:
       if num.is_adjacent(sym):
-        sum += int(num._value)
+        sum += int(num.value)
         break
     
   print("Part One: ", sum)
@@ -80,14 +80,14 @@ func part_two(parts:EngineParts):
   var gear_ratio:int
   
   for sym in parts.symbols:
-    if sym._value != "*":
+    if sym.value != "*":
       continue
     adjacent_nums = sym.get_adjacent_parts(parts.numbers)
     if adjacent_nums.size() != 2:
       continue
     gear_ratio = 1
     for num in adjacent_nums:
-      gear_ratio *= int(num._value)
+      gear_ratio *= int(num.value)
     sum += gear_ratio
       
   print("Part Two: ", sum)
