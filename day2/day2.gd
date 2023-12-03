@@ -10,13 +10,16 @@ func _ready():
   part_two(input_lines)
 
 func part_one(games:PackedStringArray):
+  var id_sum := 0
   var limits := {
     "red": 12,
     "green": 13,
     "blue": 14
   }
-  var id_sum := 0
-  regex.compile(r"Game (?<game>\d+)|(?<red>\d+) red|(?<green>\d+) green|(?<blue>\d+) blue")
+  var re_array := [r"Game (?<game>\d+)"]
+  for color in limits:
+    re_array.append(r"(?<%s>\d+) %s" % [color, color])
+  regex.compile(r"|".join(re_array))
   
   for game in games:
     var matches := regex.search_all(game)
@@ -42,9 +45,12 @@ func part_one(games:PackedStringArray):
   print("Part One: ", id_sum)
   
 func part_two(games:PackedStringArray):
-  var values := {"red": 0, "green": 0, "blue": 0}
   var power_sum := 0
-  regex.compile(r"(?<red>\d+) red|(?<green>\d+) green|(?<blue>\d+) blue")
+  var values := {"red": 0, "green": 0, "blue": 0}
+  var re_array := []
+  for color in values:
+    re_array.append(r"(?<%s>\d+) %s" % [color, color])
+  regex.compile(r"|".join(re_array))
   
   for game in games:
     for key in values:
