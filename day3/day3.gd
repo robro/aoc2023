@@ -29,15 +29,20 @@ func part_one(lines:Array):
     
   for num in numbers:
     var num_value := int(num[0])
-    var num_coord:Vector2 = num[1]
-    var num_len:int = num[2]
-    
-    for sym in symbols:
-      var sym_coord:Vector2 = sym[1]
-      for i in range(num_len):
-        var distance = sym_coord.distance_to(num_coord + Vector2(i, 0))
-        if distance < 2:
-          sum += num_value
-          break
+    if is_adjacent(num, symbols):
+      sum += num_value
     
   print("Part One: ", sum)
+
+func is_adjacent(num:Array, symbols:Array) -> bool:
+  var num_coord:Vector2 = num[1]
+  var num_len:int = num[2]
+  
+  for sym in symbols:
+    var sym_coord:Vector2 = sym[1]
+    for i in range(num_len):
+      var distance = sym_coord.distance_to(num_coord + Vector2(i, 0))
+      if distance < 2:
+        return true
+        
+  return false
