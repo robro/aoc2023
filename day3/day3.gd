@@ -42,7 +42,7 @@ func part_two(numbers:Array[EnginePart], symbols:Array[EnginePart]):
     if adjacent_nums.size() == 2:
       var gear_ratio := 1
       for num in adjacent_nums:
-        gear_ratio *= num
+        gear_ratio *= int(num._value)
       sum += gear_ratio
       
   print("Part Two: ", sum)
@@ -85,13 +85,13 @@ func is_adjacent(num:EnginePart, symbols:Array[EnginePart]) -> bool:
         
   return false
   
-func get_adjacent_nums(sym:EnginePart, numbers:Array[EnginePart]) -> Array:
-  var adjacent_nums := []
+func get_adjacent_nums(sym:EnginePart, numbers:Array[EnginePart]) -> Array[EnginePart]:
+  var adjacent_nums:Array[EnginePart] = []
   
   for num in numbers:
     for i in range(num._size):
       if sym._location.distance_to(num._location + Vector2(i, 0)) < 2:
-        adjacent_nums.append(int(num._value))
+        adjacent_nums.append(num)
         break
   
   return adjacent_nums
