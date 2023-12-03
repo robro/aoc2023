@@ -8,6 +8,7 @@ extends Node2D
 @onready var regex := RegEx.new()
 
 func _ready():
+  print("Day 1")
   part_one(lines, regex)
   part_two(lines, regex)
   
