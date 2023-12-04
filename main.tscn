@@ -1,7 +1,7 @@
 [gd_scene load_steps=2 format=3 uid="uid://bvmq47df76joe"]
 
-[ext_resource type="PackedScene" uid="uid://b5w24yalso8er" path="res://day3/day3.tscn" id="1_7lrxo"]
+[ext_resource type="PackedScene" uid="uid://6cb0dcc8m8a" path="res://day4/day4.tscn" id="1_vjl07"]
 
 [node name="Main" type="Node2D"]
 
-[node name="Day3" parent="." instance=ExtResource("1_7lrxo")]
+[node name="Day4" parent="." instance=ExtResource("1_vjl07")]
