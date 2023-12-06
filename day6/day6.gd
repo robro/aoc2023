@@ -17,9 +17,9 @@ class Race:
   func get_distance(held_time:float) -> float:
     return (self.time - held_time) * held_time
     
-  func get_record(min:bool=true) -> float:
-    var increment = 1 if min else -1
-    var time_held = 1 if min else self.time - 1
+  func get_record(reverse:bool=false) -> float:
+    var increment = -1 if reverse else 1
+    var time_held = self.time - 1 if reverse else 1
     
     while time_held > 0 && time_held < self.time:
       if self.get_distance(time_held) > self.dist:
@@ -67,7 +67,6 @@ func part_two(input_lines:PackedStringArray):
   var regex := RegEx.new()
   var time_re := r"(?<=Time:)[^\n]*"
   var dist_re := r"(?<=Distance:)[^\n]*"
-  var races:Array[Race] = []
 
   regex.compile(time_re)
   var search := regex.search(input_str)
@@ -77,4 +76,4 @@ func part_two(input_lines:PackedStringArray):
   var distance := float("".join(search.get_string().split(" ", false)))
   var race := Race.new(time, distance)
 
-  print("Part Two: ", race.get_record(false) - race.get_record(true) + 1)
+  print("Part Two: ", race.get_record(true) - race.get_record() + 1)
