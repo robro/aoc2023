@@ -1,7 +1,7 @@
 [gd_scene load_steps=2 format=3 uid="uid://bvmq47df76joe"]
 
-[ext_resource type="PackedScene" uid="uid://b332tlvvuu4m3" path="res://day7/day7.tscn" id="1_fymbn"]
+[ext_resource type="PackedScene" uid="uid://btn77b4udr4xy" path="res://day8/day8.tscn" id="1_mcamc"]
 
 [node name="Main" type="Node2D"]
 
-[node name="Day7" parent="." instance=ExtResource("1_fymbn")]
+[node name="Day8" parent="." instance=ExtResource("1_mcamc")]
