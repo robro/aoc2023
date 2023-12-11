@@ -10,12 +10,13 @@ extends Node2D
 class Pipe:
   var character := ""
   var location := Vector2.ZERO
-  var offsets := ""
   var steps := 0
   
   func _init(character:String, location:Vector2):
     self.character = character
     self.location = location
+    
+  func get_pointing() -> String:
     var directions := {
       "|": "NS",
       "-": "EW",
@@ -25,21 +26,7 @@ class Pipe:
       "F": "SE",
       "S": "NSEW",
     }
-    self.offsets = directions[character]
-    
-  func get_shape() -> Array[String]:
-    var shapes = {
-      "N": Vector2(1, 0),
-      "S": Vector2(1, 2),
-      "E": Vector2(2, 1),
-      "W": Vector2(0, 1),
-    }
-    var shape:Array[String] = ["...", ".+.", "..."]
-    for offset in self.offsets:
-      var location = shapes[offset]
-      shape[location.y][location.x] = "+"
-      
-    return shape
+    return directions[self.character]
     
   func _to_string() -> String:
     return str(self.location)
@@ -62,7 +49,9 @@ func part_one(input_lines:PackedStringArray):
 func part_two(input_lines:PackedStringArray):
   var grid := get_grid(Array(input_lines).filter(func(x): return x != ""))
   var loop_pipes := get_loop_pipes(grid)
-  var big_grid := get_big_grid(grid)
+  var loop_grid := []
+  var row_string:String
+  var is_inside = false
   var start_pipe := get_start_pipe(grid)
   var starting_offsets := []
   var directions := {
@@ -86,72 +75,29 @@ func part_two(input_lines:PackedStringArray):
     starting_offsets.append(offset)
     
   var start_character = directions["".join(starting_offsets.map(func(x): return offsets[x]))]
-  loop_pipes[str(start_pipe)] = Pipe.new(start_character, start_pipe.location)
-  var new_location:Vector2
-  var shape:Array[String]
+  start_pipe.character = start_character
   
-  for pipe in loop_pipes.values():
-    new_location = pipe.location * 3
-    shape = pipe.get_shape()
-    for shape_y in shape.size():
-      for shape_x in shape[0].length():
-        big_grid[new_location.y + shape_y][new_location.x + shape_x] = shape[shape_y][shape_x]
-        
-  var locations_to_check:Array[Vector2] = [Vector2.ZERO]
-  var checked_locations := {}
-  var next_locations:Array[Vector2]
-  var current_location:Vector2
-  
-  while true:
-    current_location = locations_to_check.pop_back()
-    checked_locations[str(current_location)] = current_location
-    big_grid[current_location.y][current_location.x] = "O"
-    next_locations = get_adjacent_nonloops(big_grid, current_location).filter(
-      func(x): return !checked_locations.has(str(x))
-    )
-    if next_locations.size() == 0 && locations_to_check.size() == 0:
-      break
-    locations_to_check.append_array(next_locations)
-  
-  var characters:String
   var inside_total := 0
-  
-  for y in range(0, big_grid.size(), 3):
-    for x in range(0, big_grid[0].size(), 3):
-      characters = ""
-      for i in 3:
-        for j in 3:
-          characters += big_grid[y+i][x+j]
-      if characters == ".........":
-        inside_total += 1
+  for row in grid:
+    row_string = ""
+    is_inside = false
     
+    for item in row:
+      if item is Pipe && loop_pipes.has(str(item)):
+        row_string += " "
+        if "N" in item.get_pointing():
+          is_inside = !is_inside
+      else:
+        if is_inside:
+          row_string += "I"
+          inside_total += 1
+        else:
+          row_string += "O"
+          
+    loop_grid.append(row_string)
+    
+  #loop_grid.map(func(x): print(x))
   print("Part Two: ", inside_total)
-  
-func get_adjacent_nonloops(grid:Array[Array], location:Vector2) -> Array[Vector2]:
-  var width := grid[0].size()
-  var height := grid.size()
-  var nonloops:Array[Vector2] = []
-  var check_location:Vector2
-  var offsets := [
-    Vector2(0, -1),
-    Vector2(0, 1),
-    Vector2(1, 0),
-    Vector2(-1, 0),
-    Vector2(-1, -1),
-    Vector2(-1, 1),
-    Vector2(1, -1),
-    Vector2(1, 1),
-  ]
-  for offset in offsets:
-    check_location = location + offset
-    if check_location.y < 0 || check_location.y >= width:
-      continue
-    if check_location.x < 0 || check_location.x >= height:
-      continue
-    if grid[check_location.y][check_location.x] == ".":
-      nonloops.append(check_location)
-    
-  return nonloops
   
 func get_grid(input_lines:Array) -> Array[Array]:
   var grid:Array[Array] = []
@@ -170,16 +116,6 @@ func get_grid(input_lines:Array) -> Array[Array]:
     grid.append(row)
     
   return grid
-  
-func get_big_grid(grid:Array[Array]) -> Array[Array]:
-  var big_grid:Array[Array] = []
-  for i in grid.size() * 3:
-    var row := []
-    row.resize(grid[0].size() * 3)
-    row.fill(".")
-    big_grid.append(row)
-  
-  return big_grid
   
 func get_loop_pipes(grid:Array[Array]) -> Dictionary:
   var current_pipe:Pipe
@@ -229,7 +165,7 @@ func get_connecting_pipes(grid:Array, pipe:Pipe) -> Array[Pipe]:
     "W": "E"
   }
   var check_offsets := {}
-  for direction in pipe.offsets:
+  for direction in pipe.get_pointing():
     check_offsets[direction] = offsets[direction]
     
   var check_loc:Vector2
@@ -239,7 +175,7 @@ func get_connecting_pipes(grid:Array, pipe:Pipe) -> Array[Pipe]:
     check_loc = pipe.location + check_offsets[offset]
     check_pipe = grid[check_loc.y][check_loc.x]
     if check_pipe is Pipe:
-      if connections[offset] in check_pipe.offsets:
+      if connections[offset] in check_pipe.get_pointing():
         connecting_pipes.append(check_pipe)
 
   return connecting_pipes
