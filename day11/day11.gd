@@ -17,19 +17,24 @@ class Galaxy:
 func _ready():
   print("Day 11")
   part_one(input_lines)
+  part_two(input_lines)
 
 func part_one(input_lines:PackedStringArray) -> void:
   var lines := Array(input_lines).filter(func(x): return x != "")
-  var distances_sum := 0
-  var space:Array[Array] = []
-  var galaxies := {}
-  var galaxy_id := 1
+  print("Part One: ", get_distances_sum(lines, 2))
+  
+func part_two(input_lines:PackedStringArray) -> void:
+  var lines := Array(input_lines).filter(func(x): return x != "")
+  print("Part Two: ", get_distances_sum(lines, 1000000))
+  
+func get_distances_sum(lines:Array, expansion:float) -> float:
+  var expanded_rows := []
+  var expanded_cols := []
 
   var i := 0
   while i < lines.size():
     if "#" not in lines[i]:
-      lines.insert(i, lines[i])
-      i += 1
+      expanded_rows.append(i)
     i += 1
 
   i = 0
@@ -40,34 +45,48 @@ func part_one(input_lines:PackedStringArray) -> void:
         empty = false
         break
     if empty:
-      for j in lines.size():
-        lines[j] = lines[j].insert(i, lines[j][i])
-      i += 1
+      expanded_cols.append(i)
     i += 1
 
-  lines.map(func(x): print(x))
+  print("Finding galaxies...")
+  var galaxies := {}
+  var galaxy_id := 1
 
   for y in lines.size():
     for x in lines[y].length():
       if lines[y][x] != "#":
         continue
-      var galaxy := Galaxy.new(str(galaxy_id), Vector2(x, y))
+      var galaxy := Galaxy.new(str(galaxy_id), Vector2(
+        x + (expansion - 1) * expanded_cols.filter(func(_x): return _x < x).size(), 
+        y + (expansion - 1) * expanded_rows.filter(func(_y): return _y < y).size()
+      ))
       galaxies[str(galaxy_id)] = galaxy
       galaxy_id += 1
 
-  var galaxy_pairs := []
+  print("Found ", galaxies.size(), " galaxies!")
+  print("Finding galaxy pairs...")
+  var galaxy_pairs := {}
 
   for id_a in galaxies:
-    for id_b in galaxies.keys().filter(func(x): return x != id_a):
+    for id_b in galaxies:
+      if id_a == id_b:
+        continue
       var pair := [id_a, id_b]
       pair.sort()
-      if pair not in galaxy_pairs:
-        galaxy_pairs.append(pair)
+      var pair_id := "_".join(pair)
+      if galaxy_pairs.has(pair_id):
+        continue
+      galaxy_pairs[pair_id] = [galaxies[id_a], galaxies[id_b]]
 
-  for pair in galaxy_pairs:
-    distances_sum += get_man_distance(galaxies[pair[0]].location, galaxies[pair[1]].location)
-
-  print("Part One: ", distances_sum)
+  print("Found ", galaxy_pairs.size(), " galaxy pairs!")
+  print("Expanding empty space ", expansion, " times!")
+  print("Calculating distances...")
+  var distances_sum := 0
+  
+  for pair in galaxy_pairs.values():
+    distances_sum += get_man_distance(pair[0].location, pair[1].location)
+    
+  return distances_sum
   
 func get_man_distance(a:Vector2, b:Vector2) -> float:
   return abs(a.x - b.x) + abs(a.y - b.y)
