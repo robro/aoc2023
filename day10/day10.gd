@@ -41,6 +41,9 @@ class Pipe:
       
     return shape
     
+  func _to_string() -> String:
+    return str(self.location)
+    
 func _ready():
   print("Day 10")
   part_one(input_lines)
@@ -48,9 +51,10 @@ func _ready():
   
 func part_one(input_lines:PackedStringArray):
   var grid := get_grid(Array(input_lines).filter(func(x): return x != ""))
+  var loop_pipes := get_loop_pipes(grid)
   var steps := 0
   
-  for pipe in get_loop_pipes(grid):
+  for pipe in loop_pipes.values():
     steps = max(steps, pipe.steps)
     
   print("Part One: ", steps)
@@ -75,42 +79,46 @@ func part_two(input_lines:PackedStringArray):
     Vector2(1, 0): "W",
     Vector2(-1, 0): "E",
   }
+  var offset:Vector2
+  
   for pipe in get_connecting_pipes(grid, start_pipe):
-    var offset := start_pipe.location - pipe.location
+    offset = start_pipe.location - pipe.location
     starting_offsets.append(offset)
     
   var start_character = directions["".join(starting_offsets.map(func(x): return offsets[x]))]
-  loop_pipes[0] = Pipe.new(start_character, start_pipe.location)
+  loop_pipes[str(start_pipe)] = Pipe.new(start_character, start_pipe.location)
+  var new_location:Vector2
+  var shape:Array[String]
   
-  for pipe in loop_pipes:
-    var new_location := pipe.location * 3
-    var shape := pipe.get_shape()
+  for pipe in loop_pipes.values():
+    new_location = pipe.location * 3
+    shape = pipe.get_shape()
     for shape_y in shape.size():
       for shape_x in shape[0].length():
         big_grid[new_location.y + shape_y][new_location.x + shape_x] = shape[shape_y][shape_x]
-  
+        
   var locations_to_check:Array[Vector2] = [Vector2.ZERO]
-  var checked_locations:Array[Vector2] = []
+  var checked_locations := {}
   var next_locations:Array[Vector2]
   var current_location:Vector2
   
   while true:
     current_location = locations_to_check.pop_back()
-    checked_locations.append(current_location)
+    checked_locations[str(current_location)] = current_location
     big_grid[current_location.y][current_location.x] = "O"
     next_locations = get_adjacent_nonloops(big_grid, current_location).filter(
-      func(x): return x not in checked_locations
+      func(x): return !checked_locations.has(str(x))
     )
     if next_locations.size() == 0 && locations_to_check.size() == 0:
       break
     locations_to_check.append_array(next_locations)
-    
-  #print_grid(big_grid)     
+  
+  var characters:String
   var inside_total := 0
   
   for y in range(0, big_grid.size(), 3):
     for x in range(0, big_grid[0].size(), 3):
-      var characters := ""
+      characters = ""
       for i in 3:
         for j in 3:
           characters += big_grid[y+i][x+j]
@@ -119,20 +127,9 @@ func part_two(input_lines:PackedStringArray):
     
   print("Part Two: ", inside_total)
   
-func print_grid(grid:Array[Array]) -> void:
-  for row in grid:
-    print("".join(row))
-  
-func get_all_locations(grid:Array[Array]) -> Array[Vector2]:
-  var all_locations:Array[Vector2] = []
-  
-  for y in grid.size():
-    for x in grid[y].size():
-      all_locations.append(Vector2(x, y))
-      
-  return all_locations
-  
 func get_adjacent_nonloops(grid:Array[Array], location:Vector2) -> Array[Vector2]:
+  var width := grid[0].size()
+  var height := grid.size()
   var nonloops:Array[Vector2] = []
   var check_location:Vector2
   var offsets := [
@@ -147,9 +144,9 @@ func get_adjacent_nonloops(grid:Array[Array], location:Vector2) -> Array[Vector2
   ]
   for offset in offsets:
     check_location = location + offset
-    if check_location.y < 0 || check_location.y >= grid.size():
+    if check_location.y < 0 || check_location.y >= width:
       continue
-    if check_location.x < 0 || check_location.x >= grid[0].size():
+    if check_location.x < 0 || check_location.x >= height:
       continue
     if grid[check_location.y][check_location.x] == ".":
       nonloops.append(check_location)
@@ -184,23 +181,23 @@ func get_big_grid(grid:Array[Array]) -> Array[Array]:
   
   return big_grid
   
-func get_loop_pipes(grid:Array[Array]) -> Array[Pipe]:
+func get_loop_pipes(grid:Array[Array]) -> Dictionary:
   var current_pipe:Pipe
   var connecting_pipes:Array[Pipe]
-  var pipes_traveled:Array[Pipe] = []
+  var pipes_traveled := {}
   var pipes_to_travel:Array[Pipe] = [get_start_pipe(grid)]
   
   while true:
     current_pipe = pipes_to_travel.pop_front()
-    pipes_traveled.append(current_pipe)
+    pipes_traveled[str(current_pipe)] = current_pipe
     connecting_pipes = get_connecting_pipes(grid, current_pipe).filter(
-      func(x): return x not in pipes_traveled
+      func(x): return !pipes_traveled.has(str(x))
     )
     if connecting_pipes.size() == 0:
       break
-    for connecting_pipe in connecting_pipes:
-      connecting_pipe.steps = current_pipe.steps + 1
-      pipes_to_travel.append(connecting_pipe)
+    for pipe in connecting_pipes:
+      pipe.steps = current_pipe.steps + 1
+      pipes_to_travel.append(pipe)
       
   return pipes_traveled
   
