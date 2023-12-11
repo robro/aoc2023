@@ -28,13 +28,13 @@ func part_two(input_lines:PackedStringArray) -> void:
   print("Part Two: ", get_distances_sum(lines, 1000000))
   
 func get_distances_sum(lines:Array, expansion:float) -> float:
-  var expanded_rows := []
-  var expanded_cols := []
+  var empty_rows := []
+  var empty_cols := []
 
   var i := 0
   while i < lines.size():
     if "#" not in lines[i]:
-      expanded_rows.append(i)
+      empty_rows.append(i)
     i += 1
 
   i = 0
@@ -45,7 +45,7 @@ func get_distances_sum(lines:Array, expansion:float) -> float:
         empty = false
         break
     if empty:
-      expanded_cols.append(i)
+      empty_cols.append(i)
     i += 1
 
   print("Finding galaxies...")
@@ -57,8 +57,8 @@ func get_distances_sum(lines:Array, expansion:float) -> float:
       if lines[y][x] != "#":
         continue
       var galaxy := Galaxy.new(str(galaxy_id), Vector2(
-        x + (expansion - 1) * expanded_cols.filter(func(_x): return _x < x).size(), 
-        y + (expansion - 1) * expanded_rows.filter(func(_y): return _y < y).size()
+        x + (expansion - 1) * empty_cols.filter(func(_x): return _x < x).size(), 
+        y + (expansion - 1) * empty_rows.filter(func(_y): return _y < y).size()
       ))
       galaxies[str(galaxy_id)] = galaxy
       galaxy_id += 1
