@@ -8,12 +8,12 @@ extends Node2D
 @onready var input_lines := FileAccess.open("res://day10/input.txt", FileAccess.READ).get_as_text().split("\n")
 
 class Pipe:
-  var character := ""
+  var type := ""
   var location := Vector2.ZERO
   var steps := 0
   
-  func _init(character:String, location:Vector2):
-    self.character = character
+  func _init(type:String, location:Vector2):
+    self.type = type
     self.location = location
     
   func get_pointing() -> String:
@@ -26,10 +26,7 @@ class Pipe:
       "F": "SE",
       "S": "NSEW",
     }
-    return directions[self.character]
-    
-  func _to_string() -> String:
-    return str(self.location)
+    return directions[self.type]
     
 func _ready():
   print("Day 10")
@@ -49,12 +46,24 @@ func part_one(input_lines:PackedStringArray):
 func part_two(input_lines:PackedStringArray):
   var grid := get_grid(Array(input_lines).filter(func(x): return x != ""))
   var loop_pipes := get_loop_pipes(grid)
-  var loop_grid := []
-  var row_string:String
-  var is_inside = false
   var start_pipe := get_start_pipe(grid)
-  var starting_offsets := []
-  var directions := {
+  start_pipe.type = get_pipe_type(grid, start_pipe)
+  var is_inside = false
+  var inside_total := 0
+  
+  for row in grid:
+    is_inside = false
+    for item in row:
+      if loop_pipes.has(item):
+        if "N" in item.get_pointing():
+          is_inside = !is_inside
+      elif is_inside:
+        inside_total += 1
+    
+  print("Part Two: ", inside_total)
+  
+func get_pipe_type(grid:Array[Array], pipe:Pipe) -> String:
+  var characters := {
     "NS": "|",
     "EW": "-",
     "NE": "L",
@@ -62,56 +71,31 @@ func part_two(input_lines:PackedStringArray):
     "SW": "7",
     "SE": "F",
   }
-  var offsets := {
+  var directions := {
     Vector2(0, -1): "S",
     Vector2(0, 1): "N",
     Vector2(1, 0): "W",
     Vector2(-1, 0): "E",
   }
-  var offset:Vector2
-  
-  for pipe in get_connecting_pipes(grid, start_pipe):
-    offset = start_pipe.location - pipe.location
-    starting_offsets.append(offset)
+  var offsets := []
+  for connecting_pipe in get_connecting_pipes(grid, pipe):
+    offsets.append(pipe.location - connecting_pipe.location)
     
-  var start_character = directions["".join(starting_offsets.map(func(x): return offsets[x]))]
-  start_pipe.character = start_character
-  
-  var inside_total := 0
-  for row in grid:
-    row_string = ""
-    is_inside = false
-    
-    for item in row:
-      if item is Pipe && loop_pipes.has(str(item)):
-        row_string += " "
-        if "N" in item.get_pointing():
-          is_inside = !is_inside
-      else:
-        if is_inside:
-          row_string += "I"
-          inside_total += 1
-        else:
-          row_string += "O"
-          
-    loop_grid.append(row_string)
-    
-  #loop_grid.map(func(x): print(x))
-  print("Part Two: ", inside_total)
+  return characters["".join(offsets.map(func(x): return directions[x]))]
   
 func get_grid(input_lines:Array) -> Array[Array]:
   var grid:Array[Array] = []
   var row:Array
-  var character:String
+  var type:String
   
   for y in input_lines.size():
     row = []
     for x in input_lines[y].length():
-      character = input_lines[y][x]
-      if character == ".":
+      type = input_lines[y][x]
+      if type == ".":
         row.append(null)
       else:
-        row.append(Pipe.new(character, Vector2(x, y)))
+        row.append(Pipe.new(type, Vector2(x, y)))
         
     grid.append(row)
     
@@ -125,11 +109,11 @@ func get_loop_pipes(grid:Array[Array]) -> Dictionary:
   
   while true:
     current_pipe = pipes_to_travel.pop_front()
-    pipes_traveled[str(current_pipe)] = current_pipe
+    pipes_traveled[current_pipe] = current_pipe
     connecting_pipes = get_connecting_pipes(grid, current_pipe).filter(
-      func(x): return !pipes_traveled.has(str(x))
+      func(x): return !pipes_traveled.has(x)
     )
-    if connecting_pipes.size() == 0:
+    if connecting_pipes.is_empty():
       break
     for pipe in connecting_pipes:
       pipe.steps = current_pipe.steps + 1
@@ -144,7 +128,7 @@ func get_start_pipe(grid:Array[Array]) -> Pipe:
     for item in row:
       if !(item is Pipe):
         continue
-      if item.character == "S":
+      if item.type == "S":
         start_pipe = item
         return start_pipe
         
@@ -158,7 +142,7 @@ func get_connecting_pipes(grid:Array, pipe:Pipe) -> Array[Pipe]:
     "E": Vector2(1, 0),
     "W": Vector2(-1, 0)
   }
-  var connections := {
+  var inversions := {
     "N": "S",
     "S": "N",
     "E": "W",
@@ -171,11 +155,12 @@ func get_connecting_pipes(grid:Array, pipe:Pipe) -> Array[Pipe]:
   var check_loc:Vector2
   var check_pipe:Pipe
   
-  for offset in check_offsets:
-    check_loc = pipe.location + check_offsets[offset]
+  for direction in check_offsets:
+    check_loc = pipe.location + check_offsets[direction]
     check_pipe = grid[check_loc.y][check_loc.x]
-    if check_pipe is Pipe:
-      if connections[offset] in check_pipe.get_pointing():
-        connecting_pipes.append(check_pipe)
+    if !(check_pipe is Pipe):
+      continue
+    if inversions[direction] in check_pipe.get_pointing():
+      connecting_pipes.append(check_pipe)
 
   return connecting_pipes
