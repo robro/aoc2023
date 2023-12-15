@@ -1,73 +1,99 @@
+class_name Platform
 extends Node2D
 
-#@onready var input_lines := FileAccess.open("res://day14/example_1.txt", FileAccess.READ).get_as_text().split("\n")
-@onready var input_lines := FileAccess.open("res://day14/input.txt", FileAccess.READ).get_as_text().split("\n")
+const OFFSETS := [
+  Vector2(0, -1),
+  Vector2(-1, 0),
+  Vector2(0,  1),
+  Vector2(1,  0),
+]
+
+const TOTAL_CYCLES := 1000000000
+
+#@onready var input_lines := Array(FileAccess.open("res://day14/example_1.txt", FileAccess.READ).get_as_text().split("\n")).filter(func(x): return x != "")
+@onready var input_lines := Array(FileAccess.open("res://day14/input.txt", FileAccess.READ).get_as_text().split("\n")).filter(func(x): return x != "")
+@onready var platform:Polygon2D = $Platform
+@onready var platform_size := len(input_lines)
+@onready var rock_scene := preload("res://day14/Rock.tscn")
+@onready var block_scene := preload("res://day14/Block.tscn")
+@onready var rocks:Array[Rock] = []
+@onready var blocks:Array[Block] = []
+@onready var tilt = null
+@onready var tilt_num := 0
+@onready var cycle_num := 0
+@onready var cycle_state := []
+@onready var cycle_states := {}
+@onready var loop_start = null
+@onready var loop_length = null
 
 func _ready():
   print("Day 14")
-  part_one(input_lines)
-  part_two(input_lines)
+  var platform_points := PackedVector2Array([
+    Vector2(0, 0),
+    Vector2(platform_size, 0),
+    Vector2(platform_size, platform_size),
+    Vector2(0, platform_size),
+  ])
+  platform.set_polygon(platform_points)
 
-func part_one(input_lines:PackedStringArray) -> void:
+  var rock_instance:Rock
+  var block_instance:Block
+
+  for y in len(input_lines):
+    for x in len(input_lines[y]):
+      if input_lines[y][x] == "O":
+        rock_instance = rock_scene.instantiate()
+        rock_instance.set_position(Vector2(x, y))
+        rocks.append(rock_instance)
+        add_child(rock_instance)
+
+      elif input_lines[y][x] == "#":
+        block_instance = block_scene.instantiate()
+        block_instance.set_position(Vector2(x, y))
+        blocks.append(block_instance)
+        add_child(block_instance)
+
+func _process(delta):
+  if !tilt:
+    tilt = OFFSETS[tilt_num]
+    tilt_num += 1
+    tilt_num %= len(OFFSETS)
+
+func _physics_process(delta):
+  if tilt != null:
+    if rocks.map(func(r): return r.move(tilt)).any(func(x): return x):
+      return
+    tilt = null
+    if tilt_num == 1 && cycle_num == 0:
+      print(part_one())
+    elif tilt_num != 0:
+      return
+    cycle_state = rocks.map(func(r): return r.position)
+    cycle_state.sort()
+
+    if cycle_states.has(cycle_state):
+      if !loop_length:
+        loop_start = cycle_states[cycle_state]
+        loop_length = cycle_num - cycle_states[cycle_state]
+        print(part_two())
+    else:
+      cycle_states[cycle_state] = cycle_num
+
+    cycle_num += 1
+
+func part_one() -> String:
   var total_load := 0
-  var platform := Array(input_lines).filter(func(x): return x != "")
 
-  roll_rocks(platform)
+  for i in platform_size:
+    total_load += len(rocks.filter(func(r): return r.position.y == i)) * (platform_size - i)
 
-  for i in platform.size():
-    total_load += platform[i].count("O") * (platform.size() - i)
+  return "Part One: " + str(total_load)
 
-  #platform.map(func(x): print(x))
-  print("Part One: ", total_load)
-
-func part_two(input_lines:PackedStringArray) -> void:
+func part_two() -> String:
   var total_load := 0
-  var platform := Array(input_lines).filter(func(x): return x != "")
-  var platform_states := {}
-  var cycle := 1
+  var final_state = cycle_states.find_key((TOTAL_CYCLES - loop_start) % loop_length + loop_start)
 
-  while true:
-    for i in 4:
-      roll_rocks(platform)
-      rotate90_CW(platform)
+  for i in platform_size:
+    total_load += len(final_state.filter(func(v): return v.y == i)) * (platform_size - i)
 
-    if platform_states.has(platform):
-      break
-    platform_states[platform.duplicate(true)] = cycle
-    cycle += 1
-
-  var total_cycles := 1000000000
-  var loop_start = platform_states[platform]
-  var loop_length = cycle - platform_states[platform]
-  var final_platform = platform_states.find_key((total_cycles - loop_start) % loop_length + loop_start)
-
-  for i in len(final_platform):
-    total_load += final_platform[i].count("O") * (len(final_platform) - i)
-
-  #final_platform.map(func(x): print(x))
-  #print("loop start: ", loop_start, " loop length: ", loop_length)
-  print("Part Two: ", total_load)
-
-func rotate90_CW(A:Array) -> void:
-  var N = len(A[0])
-  for i in N / 2:
-    for j in range(i, N - i - 1):
-      var temp = A[i][j]
-      A[i][j] = A[N - 1 - j][i]
-      A[N - 1 - j][i] = A[N - 1 - i][N - 1 - j]
-      A[N - 1 - i][N - 1 - j] = A[j][N - 1 - i]
-      A[j][N - 1 - i] = temp
-
-func roll_rocks(platform:Array) -> void:
-  var mobile_rocks := true
-
-  while mobile_rocks:
-    mobile_rocks = false
-    for y in len(platform):
-      if y == 0:
-        continue
-      for x in len(platform[y]):
-        if platform[y][x] == "O" && platform[y-1][x] == ".":
-          platform[y-1][x] = "O"
-          platform[y][x] = "."
-          mobile_rocks = true
+  return "Part Two: " + str(total_load)

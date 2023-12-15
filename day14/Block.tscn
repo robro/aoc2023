@@ -1,0 +1,30 @@
+[gd_scene load_steps=6 format=3 uid="uid://cq2t68krtshye"]
+
+[ext_resource type="Script" path="res://day14/block.gd" id="1_xcigu"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_u5g7a"]
+size = Vector2(1, 1)
+
+[sub_resource type="QuadMesh" id="QuadMesh_u83uh"]
+
+[sub_resource type="Gradient" id="Gradient_gpdsa"]
+offsets = PackedFloat32Array(0)
+colors = PackedColorArray(0.232, 0.232, 0.8, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_m6wk3"]
+gradient = SubResource("Gradient_gpdsa")
+
+[node name="Block" type="Node2D"]
+script = ExtResource("1_xcigu")
+
+[node name="Hitbox" type="Area2D" parent="."]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
+position = Vector2(0.5, 0.5)
+shape = SubResource("RectangleShape2D_u5g7a")
+
+[node name="MeshInstance2D" type="MeshInstance2D" parent="."]
+position = Vector2(0.5, 0.5)
+mesh = SubResource("QuadMesh_u83uh")
+texture = SubResource("GradientTexture1D_m6wk3")
