@@ -9,6 +9,13 @@ const rotations := {
   "LEFT": -PI/2
 }
 
+const directions := [
+  Vector2.UP,
+  Vector2.DOWN,
+  Vector2.LEFT,
+  Vector2.RIGHT,
+]
+
 class LightBeam:
   var position:Vector2
   var direction:Vector2
@@ -26,11 +33,28 @@ class LightBeam:
 func _ready():
   print("Day 16")
   print("Part One: ", part_one())
+  print("Part Two: ", part_two())
 
 func part_one() -> int:
-  return len(get_energized_positions(LightBeam.new(Vector2(-1, 0), Vector2.RIGHT)))
+  return get_energized_count(LightBeam.new(Vector2(-1, 0), Vector2.RIGHT))
   
-func get_energized_positions(start_beam:LightBeam) -> Dictionary:
+func part_two() -> int:
+  var energized_count := 0
+  var starting_beams:Array[LightBeam] = []
+  
+  for d in [Vector2.UP, Vector2.DOWN]:
+    for i in len(input_lines):
+      starting_beams.append(LightBeam.new(Vector2(i, 0) - d, d))
+  for d in [Vector2.LEFT, Vector2.RIGHT]:
+    for i in len(input_lines):
+      starting_beams.append(LightBeam.new(Vector2(0, i) - d, d))
+      
+  for beam in starting_beams:
+    energized_count = max(energized_count, get_energized_count(beam))
+    
+  return energized_count
+  
+func get_energized_count(start_beam:LightBeam) -> int:
   var beams := {}
   var current_beam:LightBeam
   var beams_to_test:Array[LightBeam] = [start_beam]
@@ -105,4 +129,4 @@ func get_energized_positions(start_beam:LightBeam) -> Dictionary:
 
   #print()
   beams.erase(start_beam.position)
-  return beams
+  return len(beams)
