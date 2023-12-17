@@ -41,14 +41,16 @@ func part_one() -> int:
 func part_two() -> int:
   var energized_count := 0
   var starting_beams:Array[LightBeam] = []
+  var start_position:Vector2
   
-  for d in [Vector2.UP, Vector2.DOWN]:
+  for d in directions:
     for i in len(input_lines):
-      starting_beams.append(LightBeam.new(Vector2(i, 0) - d, d))
-  for d in [Vector2.LEFT, Vector2.RIGHT]:
-    for i in len(input_lines):
-      starting_beams.append(LightBeam.new(Vector2(0, i) - d, d))
-      
+      if d.x == 0:
+        start_position = Vector2(i, 0) - d
+      elif d.y == 0:
+        start_position = Vector2(0, i) - d
+      starting_beams.append(LightBeam.new(start_position, d))
+
   for beam in starting_beams:
     energized_count = max(energized_count, get_energized_count(beam))
     
