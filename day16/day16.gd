@@ -45,10 +45,10 @@ func part_two() -> int:
   
   for d in directions:
     if d.x == 0:
-      for i in len(input_lines):
+      for i in len(input_lines[0]):
         starting_beams.append(LightBeam.new(Vector2(i, 0) - d, d))
     elif d.y == 0:
-      for i in len(input_lines[0]):
+      for i in len(input_lines):
         starting_beams.append(LightBeam.new(Vector2(0, i) - d, d))
 
   for beam in starting_beams:
