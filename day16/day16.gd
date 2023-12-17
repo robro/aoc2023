@@ -44,12 +44,12 @@ func part_two() -> int:
   var start_position:Vector2
   
   for d in directions:
-    for i in len(input_lines):
-      if d.x == 0:
-        start_position = Vector2(i, 0) - d
-      elif d.y == 0:
-        start_position = Vector2(0, i) - d
-      starting_beams.append(LightBeam.new(start_position, d))
+    if d.x == 0:
+      for i in len(input_lines):
+        starting_beams.append(LightBeam.new(Vector2(i, 0) - d, d))
+    elif d.y == 0:
+      for i in len(input_lines[0]):
+        starting_beams.append(LightBeam.new(Vector2(0, i) - d, d))
 
   for beam in starting_beams:
     energized_count = max(energized_count, get_energized_count(beam))
