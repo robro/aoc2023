@@ -78,7 +78,7 @@ func part_one() -> float:
     dig_points.resize(len(dig_points)-1)
     
   var dig_points_expanded = get_expanded_points(dig_points, 0.5)
-  dig_shape.polygon = PackedVector2Array(dig_points)
+  dig_shape.polygon = PackedVector2Array(dig_points_expanded)
   return get_shape_volume(dig_points_expanded)
   
 func get_expanded_points(points:Array[Vector2], expansion:float) -> Array[Vector2]:
@@ -93,8 +93,6 @@ func get_expanded_points(points:Array[Vector2], expansion:float) -> Array[Vector
       exp_point = (points[i] - (prev_dir + next_dir) * expansion).ceil()
     elif (-prev_dir).rotated(rotations.LEFT).round() == next_dir:
       exp_point = (points[i] + (prev_dir + next_dir) * expansion).ceil()
-    else:
-      print("wtf")
       
     points_expanded.append(exp_point)
       

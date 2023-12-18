@@ -4,3 +4,6 @@
 
 [node name="Day18" type="Node2D"]
 script = ExtResource("1_rdcrj")
+
+[node name="DigShape" type="Polygon2D" parent="."]
+color = Color(1, 0, 0, 1)
