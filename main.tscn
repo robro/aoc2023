@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://bvmq47df76joe"]
 
-[ext_resource type="PackedScene" uid="uid://cqvfn0lbvq5i" path="res://day16/day16.tscn" id="1_xfnny"]
+[ext_resource type="PackedScene" uid="uid://beptwgmbghn1r" path="res://day18/day18.tscn" id="1_06jdh"]
 
 [node name="Main" type="Node2D"]
 
@@ -8,4 +8,4 @@
 anchor_mode = 0
 zoom = Vector2(10, 10)
 
-[node name="Day16" parent="." instance=ExtResource("1_xfnny")]
+[node name="Day18" parent="." instance=ExtResource("1_06jdh")]
